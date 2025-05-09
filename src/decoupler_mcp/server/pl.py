@@ -21,7 +21,7 @@ async def violin(request: ViolinModel, ctx: Context):
         return result        
     func_kwargs = filter_args(request, sc.pl.violin)
     ads = ctx.request_context.lifespan_context
-    adata = ads.adata_dic[ads.active_id]
+    adata = ads.get_adata()
     func_kwargs.pop("return_fig", True)
     func_kwargs["show"] = False
     func_kwargs["save"] = ".png"
@@ -51,7 +51,7 @@ async def matrixplot(request: MatrixplotModel, ctx: Context):
         return result
     func_kwargs = filter_args(request, sc.pl.matrixplot)
     ads = ctx.request_context.lifespan_context
-    adata = ads.adata_dic[ads.active_id]
+    adata = ads.get_adata()
 
     func_kwargs.pop("return_fig", True)
     func_kwargs["show"] = False
@@ -81,7 +81,7 @@ async def embedding(request: EmbeddingModel, ctx: Context):
         return result       
     func_kwargs = filter_args(request, sc.pl.embedding)
     ads = ctx.request_context.lifespan_context
-    adata = ads.adata_dic[ads.active_id]
+    adata = ads.get_adata()
     
     func_kwargs.pop("return_fig", True)
     func_kwargs["show"] = False

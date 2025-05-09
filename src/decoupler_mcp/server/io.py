@@ -43,7 +43,7 @@ async def read(request: ReadModel, ctx: Context):
     adata.layers["counts"] = adata.X
     adata.var_names_make_unique()
     adata.obs_names_make_unique()
-    ads.adata_dic[ads.active_id] = adata
+    ads.set_adata(adata)
     return adata
 
 
@@ -56,7 +56,7 @@ async def write(request: WriteModel, ctx: Context):
     if result is not None:
         return result
     ads = ctx.request_context.lifespan_context
-    adata = ads.adata_dic[ads.active_id]    
+    adata = ads.get_adata()    
     kwargs = request.model_dump()
     sc.write(kwargs["filename"], adata)
     return {"filename": kwargs["filename"], "msg": "success to save file"}
