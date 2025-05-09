@@ -1,6 +1,5 @@
 import pytest
 from fastmcp import Client
-import anndata
 from pathlib import Path
 
 
