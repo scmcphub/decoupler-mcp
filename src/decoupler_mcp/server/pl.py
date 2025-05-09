@@ -14,27 +14,27 @@ logger = setup_logger()
 
 
 @pl_mcp.tool()
-async def violin(request: ViolinModel, ctx: Context):
+async def violin(
+    request: ViolinModel, 
+    ctx: Context, 
+    dtype: str = Field(default="activity", description="the datatype of anndata.X"),
+    sampleid: str = Field(default=None, description="adata sampleid for plotting")
+):
     """Plot violin plot of one or more variables in adata.var and adata.obs or adata.obsm"""
     result = await forward_request("pl_violin", request.model_dump())
     if result is not None:
         return result        
     func_kwargs = filter_args(request, sc.pl.violin)
     ads = ctx.request_context.lifespan_context
-    adata = ads.get_adata()
+    adata = ads.get_adata(dtype=dtype, sampleid=sampleid)
     func_kwargs.pop("return_fig", True)
     func_kwargs["show"] = False
     func_kwargs["save"] = ".png"
 
-    if request.obsm is not None:
-        adata = obsm2adata(adata, request.obsm)
     try:      
         fig = sc.pl.violin(adata, **func_kwargs)
     except KeyError as e:
-        if request.obsm is None:
-            raise KeyError(f"Key {e} not found in adata.var and adata.obs. Please check it again, or it is in adata.obsm?")
-        else:
-            raise KeyError(f"Key {e} not found in adata.obsm")
+        raise KeyError(f"Key {e} not found in adata.var and adata.obs")
     except Exception as e:
         raise e
 
@@ -44,7 +44,12 @@ async def violin(request: ViolinModel, ctx: Context):
 
 
 @pl_mcp.tool()
-async def matrixplot(request: MatrixplotModel, ctx: Context):
+async def matrixplot(
+    request: MatrixplotModel, 
+    ctx: Context, 
+    dtype: str = Field(default="activity", description="the datatype of anndata.X"),
+    sampleid: str = Field(default=None, description="adata sampleid for plotting")
+):
     """matrixplot, Create a heatmap of the mean expression values per group of each var_names."""
     result = await forward_request("pl_matrixplot", request.model_dump())
     if result is not None:
@@ -57,15 +62,11 @@ async def matrixplot(request: MatrixplotModel, ctx: Context):
     func_kwargs["show"] = False
     func_kwargs["save"] = ".png"
 
-    if request.obsm is not None:
-        adata = obsm2adata(adata, request.obsm)
+
     try:      
         fig = sc.pl.matrixplot(adata, **func_kwargs)
     except KeyError as e:
-        if request.obsm is None:
-            raise KeyError(f"Key {e} not found in adata.var and adata.obs. Please check it again, or it is in adata.obsm?")
-        else:
-            raise KeyError(f"Key {e} not found in adata.obsm")
+        raise KeyError(f"Key {e} not found in adata.var and adata.obs.")
     except Exception as e:
         raise e
     fig_path = set_fig_path("matrixplot", **func_kwargs)
@@ -74,7 +75,12 @@ async def matrixplot(request: MatrixplotModel, ctx: Context):
 
 
 @pl_mcp.tool()
-async def embedding(request: EmbeddingModel, ctx: Context):
+async def embedding(
+    request: EmbeddingModel, 
+    ctx: Context, 
+    dtype: str = Field(default="activity", description="the datatype of anndata.X"),
+    sampleid: str = Field(default=None, description="adata sampleid for plotting")
+):
     """Scatter plot for user specified embedding basis (e.g. umap, tsne, etc)."""
     result = await forward_request("pl_embedding", request.model_dump())
     if result is not None:

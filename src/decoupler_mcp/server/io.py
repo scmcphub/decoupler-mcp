@@ -12,7 +12,12 @@ io_mcp = FastMCP("DECOUPLERNCP-IO-Server")
 
 
 @io_mcp.tool()
-async def read(request: ReadModel, ctx: Context):
+async def read(
+    request: ReadModel, 
+    ctx: Context,
+    sampleid: str = Field(default=None, description="adata sampleid"),
+    sdtype: str = Field(default="exp", description="adata.X data type")
+):
     """
     Read data from various file formats (h5ad, 10x, text files, etc.) or directory path.
     """
@@ -23,10 +28,10 @@ async def read(request: ReadModel, ctx: Context):
         return result
     
     ads = ctx.request_context.lifespan_context
-    if kwargs.get("sampleid", None) is not None:
-        ads.active_id = kwargs["sampleid"]
+    if sampleid is not None:
+        ads.active_id = sampleid
     else:
-        ads.active_id = f"adata{len(ads.adata_dic)}"
+        ads.active_id = f"adata{len(ads.adata_dic[sdtype])}"
 
     file = Path(kwargs.get("filename", None))
     if file.is_dir():
@@ -43,20 +48,25 @@ async def read(request: ReadModel, ctx: Context):
     adata.layers["counts"] = adata.X
     adata.var_names_make_unique()
     adata.obs_names_make_unique()
-    ads.set_adata(adata)
-    return adata
+    ads.set_adata(adata, sampleid=sampleid, sdtype="exp")
+    return {"sampleid": sampleid or ads.active_id, "adata": adata, "dtype": sdtype}
 
 
 
 @io_mcp.tool()
-async def write(request: WriteModel, ctx: Context):
+async def write(
+    request: WriteModel, 
+    ctx: Context,
+    sampleid: str = Field(default=None, description="adata sampleid"),
+    dtype: str = Field(default="exp", description="adata.X data type")
+):
     """save adata into a file.
     """
     result = await forward_request("io_write", request.model_dump())
     if result is not None:
         return result
     ads = ctx.request_context.lifespan_context
-    adata = ads.get_adata()    
+    adata = ads.get_adata(sampleid=sampleid, dtype=dtype)    
     kwargs = request.model_dump()
     sc.write(kwargs["filename"], adata)
     return {"filename": kwargs["filename"], "msg": "success to save file"}
