@@ -1,0 +1,31 @@
+[project]
+name = "decoupler-mcp"
+dynamic = ["version"]
+description = "Natural language interface for biological activities analysis with decoupler through MCP."
+readme = "README.md"
+authors = [
+    { name = "shuang", email = "hsh-me@outlook.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastmcp>=2.3.0",
+    "decoupler",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.23.5",
+]
+
+[project.scripts]
+decoupler-mcp = "decoupler_mcp.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/decoupler_mcp/__init__.py"
+
+
