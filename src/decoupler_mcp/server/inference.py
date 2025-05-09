@@ -18,7 +18,7 @@ async def pathway_activity(
     request: PathwayActivityModel, 
     ctx: Context, 
     sampleid: str = Field(default=None, description="adata sampleid for inference"),
-    dtype: str = Field(default="exp", description="the datatype of anndata.X") ,
+    dtype: str = Field(default="exp", description="the datatype of anndata.X"),
     sdtype: str = Field(default="activity", description="the saved datatype of anndata.X")
 ):
     """Pathway activity inference"""

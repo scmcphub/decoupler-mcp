@@ -15,6 +15,7 @@ class AdataState:
         self.adata_dic = {"exp": {}, "activity": {}}
         self.active_id = None
         self.metadata = {}
+        
     def get_adata(self, sampleid=None, dtype="exp"):
         try:
             if self.active_id is None:

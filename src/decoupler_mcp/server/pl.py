@@ -8,9 +8,13 @@ from pathlib import Path
 from ..logging_config import setup_logger
 from ..util import filter_args, set_fig_path, add_op_log,forward_request,obsm2adata
 from ..logging_config import setup_logger
-pl_mcp = FastMCP("decoupler-mcp-inference-Server")
+
 
 logger = setup_logger()
+
+
+
+pl_mcp = FastMCP("decouplerMCP-pl-Server")
 
 
 @pl_mcp.tool()
