@@ -28,7 +28,7 @@ def setup_logger(name="sc-mcp-server", log_file=None):
         '%Y-%m-%d %H:%M:%S'
     )
     if log_file is None:
-        log_file = os.environ.get(f"{__package__.upper()}_LOG_FILE", None)
+        log_file = os.environ.get(f"{__package__.upper()}_LOG_FILE") or os.environ.get("SCMCP_LOG_FILE")
     if log_file:
         log_handler = logging.FileHandler(log_file)
         log_handler.setFormatter(formatter)
