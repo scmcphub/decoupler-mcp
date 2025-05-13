@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from starlette.responses import FileResponse, Response
 
-PKG = __package__.upper()
+PKG = __package__.split('.')[0].upper()
 
 def filter_args(request, func):
     # sometime,it is a bit redundant, but I think it adds robustness in case the function parameters change
@@ -47,11 +47,26 @@ def add_op_log(adata, func, kwargs):
     adata.uns["operation"]["op"][hash_key] = {func_name: new_kwargs}
     adata.uns["operation"]["opid"].append(hash_key)
     from .logging_config import setup_logger
-    logger = setup_logger(log_file=os.environ.get(f"{PKG}_LOG_FILE", None))
+    logger = setup_logger()
     logger.info(f"{func}: {new_kwargs}")
 
 
-def set_fig_path(func, **kwargs):
+def savefig(fig, file):
+    try:
+        file_path = Path(file)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        if hasattr(fig, 'figure'):  # if Axes
+            fig.figure.savefig(file_path)
+        elif hasattr(fig, 'save'):  # for plotnine.ggplot.ggplot
+            fig.save(file_path)
+        else:  # if Figure 
+            fig.savefig(file_path)
+        return file_path
+    except Exception as e:
+        raise e
+
+
+def set_fig_path(func, fig=None, **kwargs):
     "maybe I need to save figure by myself, instead of using scanpy save function..."
     fig_dir = Path(os.getcwd()) / "figures"
 
@@ -60,9 +75,9 @@ def set_fig_path(func, **kwargs):
     args = []
     for k,v in kwargs.items():
         if isinstance(v, (tuple, list, set)):
-            args.append(f"{k}:{'-'.join([str(i) for i in v])}")
+            args.append(f"{k}-{'-'.join([str(i) for i in v])}")
         else:
-            args.append(f"{k}:{v}")
+            args.append(f"{k}-{v}")
     args_str = "_".join(args)
     if func == "rank_genes_groups_dotplot":
         old_path = fig_dir / 'dotplot_.png'
@@ -84,7 +99,11 @@ def set_fig_path(func, **kwargs):
             old_path = fig_dir / f"{func}.png"
         fig_path = fig_dir / f"{func}_{args_str}.png"
     try:
-        os.rename(old_path, fig_path)
+        if fig is not None:
+            savefig(fig, fig_path)
+        else:
+            os.rename(old_path, fig_path)
+        return fig_path
     except FileNotFoundError:
         print(f"The file {old_path} does not exist")
     except FileExistsError:
@@ -101,23 +120,6 @@ def set_fig_path(func, **kwargs):
         return fig_path
 
 
-def savefig(fig, file, format="png"):
-    try:
-        # 确保父目录存在
-        file_path = Path(file)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        if hasattr(fig, 'figure'):  # if Axes
-            fig.figure.savefig(file, format=format)
-        elif hasattr(fig, 'save'):  # for plotnine.ggplot.ggplot
-            fig.save(file, format=format)
-        else:  # if Figure 
-            fig.savefig(file, format=format)
-        return file
-    except Exception as e:
-        raise e
-
-
 async def get_figure(request):
     figure_name = request.path_params["figure_name"]
     figure_path = f"./figures/{figure_name}"
@@ -129,18 +131,26 @@ async def get_figure(request):
     return FileResponse(figure_path)
 
 
-async def forward_request(func, kwargs):
+async def forward_request(func, request, **kwargs):
     from fastmcp import Client
 
-    forward_url = os.environ.get(f"{PKG}_FORWARD", False)
+    forward_url = os.environ.get(f"{PKG}_FORWARD")
+    request_kwargs = request.model_dump()
+    request_args = request.model_fields_set
+    func_kwargs = {"request": {k: request_kwargs.get(k) for k in request_args}}
+    func_kwargs.update({k:v for k,v in kwargs.items() if v is not None})
     if not forward_url:
         return None
         
     client = Client(forward_url)
     async with client:
-        result = await client.call_tool(func, {"request": kwargs})
-    return result
-
+        tools = await client.list_tools()
+        func = [t.name for t in tools if t.name.endswith(func)][0]
+        try:
+            result = await client.call_tool(func, func_kwargs)
+            return result
+        except Exception as e:
+            raise e
 
 def obsm2adata(adata, obsm_key):
     from anndata import AnnData
