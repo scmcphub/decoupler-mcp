@@ -23,7 +23,7 @@ class AdataState:
             sampleid = sampleid or self.active_id
             return self.adata_dic[dtype][sampleid]
         except KeyError as e:
-            raise KeyError(f"Key {e} not found in adata_dic")
+            raise KeyError(f"Key {e} not found in adata_dic[{dtype}].Please check the sampleid or dtype.")
         except Exception as e:
             raise Exception(f"Error: {e}")
     
@@ -42,10 +42,14 @@ async def adata_lifespan(server: FastMCP) -> AsyncIterator[Any]:
 
 decoupler_mcp = FastMCP("decoupler-MCP-Server", lifespan=adata_lifespan)
 
-
-async def setup():
-    await decoupler_mcp.import_server("io", io_mcp)
-    await decoupler_mcp.import_server("if", if_mcp) 
-    await decoupler_mcp.import_server("pl", pl_mcp) 
-    await decoupler_mcp.import_server("util", util_mcp) 
-    #await decoupler_mcp.import_server("prompt", prompt_mcp) 
+async def setup(modules=None):
+    mcp_dic = {
+        "io": io_mcp, 
+        "if": if_mcp, 
+        "pl": pl_mcp, 
+        "util": util_mcp
+        }
+    if modules is None or modules == "all":
+        modules = ["io", "if", "pl", "util"]
+    for module in modules:
+        await decoupler_mcp.import_server(module, mcp_dic[module])
