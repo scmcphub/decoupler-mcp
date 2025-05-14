@@ -10,7 +10,8 @@ requires-python = ">=3.10"
 dependencies = [
     "fastmcp>=2.3.0",
     "decoupler",
-    "scanpy"
+    "scanpy",
+    "scmcp-shared"
 ]
 
 [dependency-groups]
