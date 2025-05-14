@@ -4,8 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
-
-from .io import io_mcp
+from scmcp_shared.server import io_mcp
 from .inference import if_mcp
 from .pl import pl_mcp
 from .util import util_mcp

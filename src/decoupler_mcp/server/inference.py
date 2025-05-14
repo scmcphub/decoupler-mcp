@@ -5,8 +5,8 @@ from pydantic import Field
 from fastmcp import FastMCP, Context
 import decoupler as dc
 from ..schema.inference import *
-from ..util import add_op_log, filter_args,forward_request, obsm2adata
-from ..logging_config import setup_logger
+from scmcp_shared.util import add_op_log, filter_args,forward_request, obsm2adata
+from scmcp_shared.logging_config import setup_logger
 
 if_mcp = FastMCP("decoupler-mcp-inference-Server")
 

@@ -10,9 +10,9 @@ import sys
 import typer
 from enum import Enum
 from typing import Optional
-from .server import decoupler_mcp, setup
 
-PKG = __package__.upper()
+
+
 
 app = typer.Typer(
     name="decoupler-mcp",
@@ -47,22 +47,22 @@ def run(
     
     # Set environment variables
     if log_file is not None:
-        os.environ[f'{PKG}_LOG_FILE'] = log_file
+        os.environ['SCMCP_LOG_FILE'] = log_file
     if forward is not None:
-        os.environ[f'{PKG}_FORWARD'] = forward
-    os.environ[f'{PKG}_TRANSPORT'] = transport.value
-    os.environ[f'{PKG}_HOST'] = host
-    os.environ[f'{PKG}_PORT'] = str(port)
-    os.environ[f'{PKG}_MODULE'] = module.value
-       
+        os.environ['SCMCP_FORWARD'] = forward
+    os.environ['SCMCP_TRANSPORT'] = transport.value
+    os.environ['SCMCP_HOST'] = host
+    os.environ['SCMCP_PORT'] = str(port)
+    os.environ['SCMCP_MODULE'] = module.value
+    
+    from .server import decoupler_mcp, setup
     asyncio.run(setup())
+    from scmcp_shared.util import add_figure_route
+
     if transport == Transport.STDIO:
         decoupler_mcp.run()
     elif transport == Transport.SSE:
-        from .util import get_figure
-        from starlette.routing import Route
-
-        decoupler_mcp._additional_http_routes = [Route("/figures/{figure_name}", endpoint=get_figure)]
+        add_figure_route(decoupler_mcp)
         decoupler_mcp.run(
                 transport="sse",
                 host=host, 
@@ -70,10 +70,7 @@ def run(
                 log_level="info"
             )
     elif transport == Transport.SHTTP:
-        from .util import get_figure
-        from starlette.routing import Route
-
-        decoupler_mcp._additional_http_routes = [Route("/figures/{figure_name}", endpoint=get_figure)]
+        add_figure_route(decoupler_mcp)
         decoupler_mcp.run(
                 transport="streamable-http",
                 host=host, 

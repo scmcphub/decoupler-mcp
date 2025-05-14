@@ -5,9 +5,8 @@ import scanpy as sc
 from fastmcp import FastMCP, Context
 from ..schema.pl import *
 from pathlib import Path
-from ..logging_config import setup_logger
-from ..util import filter_args, set_fig_path, add_op_log,forward_request,obsm2adata
-from ..logging_config import setup_logger
+from scmcp_shared.logging_config import setup_logger
+from scmcp_shared.util import filter_args, set_fig_path, add_op_log,forward_request,obsm2adata
 
 
 logger = setup_logger()
@@ -39,11 +38,14 @@ async def violin(
         fig_path = set_fig_path("violin", **func_kwargs)
         add_op_log(adata, sc.pl.violin, func_kwargs)
         return {"figpath": fig_path}
+    except KeyError as e:
+        raise e
     except Exception as e:
         if hasattr(e, '__context__') and e.__context__:
             raise Exception(f"{str(e.__context__)}")
         else:
             raise e
+
 
 
 @pl_mcp.tool()
