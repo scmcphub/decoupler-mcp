@@ -1,11 +1,10 @@
-import os
-from pathlib import Path
 
 from pydantic import Field
 from fastmcp import FastMCP, Context
+from fastmcp.exceptions import ToolError
 import decoupler as dc
 from ..schema.inference import *
-from scmcp_shared.util import add_op_log, filter_args,forward_request, obsm2adata
+from scmcp_shared.util import add_op_log, filter_args,forward_request, obsm2adata, get_ads
 from scmcp_shared.logging_config import setup_logger
 
 if_mcp = FastMCP("decoupler-mcp-inference-Server")
@@ -15,22 +14,17 @@ logger = setup_logger()
 
 @if_mcp.tool()
 async def pathway_activity(
-    request: PathwayActivityModel, 
-    ctx: Context, 
-    sampleid: str = Field(default=None, description="adata sampleid for inference"),
-    dtype: str = Field(default="exp", description="the datatype of anndata.X"),
-    sdtype: str = Field(default="activity", description="the saved datatype of anndata.X")
+    request: PathwayActivityModel
 ):
     """Pathway activity inference"""
     try:
-        result = await forward_request("if_pathway_activity", request, sampleid=sampleid, dtype=dtype,sdtype=sdtype)
+        result = await forward_request("if_pathway_activity", request)
         if result is not None:
             return result
-        
+        ads = get_ads()
+        adata = ads.get_adata(request=request)
         kwargs = request.model_dump()
         progeny = dc.get_progeny(organism=kwargs["organism"], top=kwargs.get("top", None))
-        ads = ctx.request_context.lifespan_context
-        adata = ads.get_adata(dtype=dtype, sampleid=sampleid)
         func_kwargs = filter_args(request, dc.run_mlm)
         dc.run_mlm(mat=adata, net=progeny, **func_kwargs)
         adata.obsm['progeny_mlm_estimate'] = adata.obsm['mlm_estimate'].copy()
@@ -38,39 +32,36 @@ async def pathway_activity(
         add_op_log(adata, dc.run_mlm, func_kwargs)
         estimate_adata = obsm2adata(adata, "progeny_mlm_estimate")
         pvals_adata = obsm2adata(adata, "progeny_mlm_pvals")
+        sdtype = "activity"
         ads.set_adata(pvals_adata, sampleid="progeny_mlm_pvals", sdtype=sdtype)
         ads.set_adata(estimate_adata, sampleid="progeny_mlm_estimate", sdtype=sdtype)
         return [
-            {"sampleid": sampleid or ads.active_id, "dtype": dtype, "adata": adata},
-            {"sampleid": "progeny_mlm_pvals", "dtype": sdtype, "adata": pvals_adata},
-            {"sampleid": "progeny_mlm_estimate", "dtype": sdtype, "adata": estimate_adata}
+            {"sampleid": sampleid or ads.active_id, "adtype": request.adtype, "adata": adata},
+            {"sampleid": "progeny_mlm_pvals", "adtype": sdtype, "adata": pvals_adata},
+            {"sampleid": "progeny_mlm_estimate", "adtype": sdtype, "adata": estimate_adata}
         ]
+    except KeyError as e:
+        raise e
     except Exception as e:
         if hasattr(e, '__context__') and e.__context__:
             raise Exception(f"{str(e.__context__)}")
         else:
-            raise e    
-
+            raise e
 
 
 @if_mcp.tool()
 async def tf_activity(
     request: TFActivityModel, 
-    ctx: Context,
-    sampleid: str = Field(default=None, description="adata sampleid for inference"),
-    dtype: str = Field(default="exp", description="the datatype of anndata.X"),
-    sdtype: str = Field(default="activity", description="the saved datatype of anndata.X")
 ):
     """Transcription factor activity inference"""
     try:
-        result = await forward_request("if_tf_activity", request, sampleid=sampleid, dtype=dtype,sdtype=sdtype)
+        result = await forward_request("if_tf_activity", request)
         if result is not None:
             return result
-        
+        ads = get_ads()
+        adata = ads.get_adata(request=request)
         kwargs = request.model_dump()
         net = dc.get_collectri(organism=kwargs["organism"], split_complexes=False) 
-        ads = ctx.request_context.lifespan_context
-        adata = ads.get_adata(dtype=dtype, sampleid=sampleid)
         func_kwargs = filter_args(request, dc.run_ulm)
         dc.run_ulm(mat=adata, net=net, **func_kwargs)
         adata.obsm['collectri_ulm_estimate'] = adata.obsm['ulm_estimate'].copy()
@@ -78,15 +69,18 @@ async def tf_activity(
         add_op_log(adata, dc.run_ulm, func_kwargs)
         estimate_adata = obsm2adata(adata, "collectri_ulm_estimate")
         pvals_adata = obsm2adata(adata, "collectri_ulm_pvals")
+        sdtype = "activity"
         ads.set_adata(pvals_adata, sampleid="collectri_ulm_pvals", sdtype=sdtype)
         ads.set_adata(estimate_adata, sampleid="collectri_ulm_estimate", sdtype=sdtype)
-        return [
-            {"sampleid": sampleid or ads.active_id, "dtype": dtype, "adata": adata},
-            {"sampleid": "collectri_ulm_pvals", "dtype": sdtype, "adata": pvals_adata},
-            {"sampleid": "collectri_ulm_estimate", "dtype": sdtype, "adata": estimate_adata}
+        return [    
+            {"sampleid": request.sampleid or ads.active_id, "adtype": request.adtype, "adata": adata},
+            {"sampleid": "collectri_ulm_pvals", "adtype": sdtype, "adata": pvals_adata},
+            {"sampleid": "collectri_ulm_estimate", "adtype": sdtype, "adata": estimate_adata}
         ]
+    except KeyError as e:
+        raise e
     except Exception as e:
         if hasattr(e, '__context__') and e.__context__:
             raise Exception(f"{str(e.__context__)}")
         else:
-            raise e    
+            raise e

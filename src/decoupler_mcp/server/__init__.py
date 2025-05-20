@@ -4,51 +4,36 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
-from scmcp_shared.server import io_mcp
+
+import scmcp_shared.server as shs
+
+from scmcp_shared.server import ul_mcp
+from scmcp_shared.util import filter_tools
 from .inference import if_mcp
-from .pl import pl_mcp
-from .util import util_mcp
-
-class AdataState:
-    def __init__(self):
-        self.adata_dic = {"exp": {}, "activity": {}}
-        self.active_id = None
-        self.metadata = {}
-        
-    def get_adata(self, sampleid=None, dtype="exp"):
-        try:
-            if self.active_id is None:
-                return None
-            sampleid = sampleid or self.active_id
-            return self.adata_dic[dtype][sampleid]
-        except KeyError as e:
-            raise KeyError(f"Key {e} not found in adata_dic[{dtype}].Please check the sampleid or dtype.")
-        except Exception as e:
-            raise Exception(f"Error: {e}")
-    
-    def set_adata(self, adata, sampleid=None, sdtype="exp"):
-        sampleid = sampleid or self.active_id
-        self.adata_dic[sdtype][sampleid] = adata
 
 
 
-ads = AdataState()
+ads = shs.AdataState(add_adtypes="activity")
 
 @asynccontextmanager
 async def adata_lifespan(server: FastMCP) -> AsyncIterator[Any]:
     yield ads
 
 
-decoupler_mcp = FastMCP("decoupler-MCP-Server", lifespan=adata_lifespan)
+decoupler_mcp = FastMCP(lifespan=adata_lifespan)
+
 
 async def setup(modules=None):
+    ul_mcp = await filter_tools(shs.ul_mcp, include_tools=["query_op_log", "check_samples"])
+    pl_mcp = await filter_tools(shs.pl_mcp, exclude_tools=["highly_variable_genes", "diffmap"])
     mcp_dic = {
-        "io": io_mcp, 
+        "io": shs.io_mcp, 
         "if": if_mcp, 
-        "pl": pl_mcp, 
-        "util": util_mcp
+        "pl": pl_mcp,
+        "ul": ul_mcp
         }
     if modules is None or modules == "all":
-        modules = ["io", "if", "pl", "util"]
+        modules = ["io", "if", "pl", "ul"]
     for module in modules:
         await decoupler_mcp.import_server(module, mcp_dic[module])
+ 
