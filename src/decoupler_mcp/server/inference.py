@@ -40,13 +40,13 @@ async def pathway_activity(
             {"sampleid": "progeny_mlm_pvals", "adtype": sdtype, "adata": pvals_adata},
             {"sampleid": "progeny_mlm_estimate", "adtype": sdtype, "adata": estimate_adata}
         ]
-    except KeyError as e:
-        raise e
+    except ToolError as e:
+        raise ToolError(e)
     except Exception as e:
         if hasattr(e, '__context__') and e.__context__:
-            raise Exception(f"{str(e.__context__)}")
+            raise ToolError(e.__context__)
         else:
-            raise e
+            raise ToolError(e)
 
 
 @if_mcp.tool()
@@ -77,10 +77,11 @@ async def tf_activity(
             {"sampleid": "collectri_ulm_pvals", "adtype": sdtype, "adata": pvals_adata},
             {"sampleid": "collectri_ulm_estimate", "adtype": sdtype, "adata": estimate_adata}
         ]
-    except KeyError as e:
-        raise e
+    except ToolError as e:
+        raise ToolError(e)
     except Exception as e:
         if hasattr(e, '__context__') and e.__context__:
-            raise Exception(f"{str(e.__context__)}")
+            raise ToolError(e.__context__)
         else:
-            raise e
+            raise ToolError(e)
+
