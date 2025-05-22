@@ -1,14 +1,13 @@
 from typing import Optional
 
-from pydantic import Field
-from scmcp_shared.schema import AdataModel
+from pydantic import Field, BaseModel
 
-class ListInferenceMethodModel(AdataModel):
+class ListInferenceMethodModel(BaseModel):
     """ListInferenceMethodModel"""
     pass
 
 
-class ULMModel(AdataModel):
+class ULMModel(BaseModel):
     """Input schema for decoupler's Univariate Linear Model (ULM) method.
     
     ULM fits a linear model for each sample and regulator, where the observed molecular 
@@ -53,7 +52,7 @@ class ULMModel(AdataModel):
     )
 
 
-class MLMModel(AdataModel):
+class MLMModel(BaseModel):
     """Input schema for decoupler's Multivariate Linear Model (MLM) method.
     
     MLM fits a multivariate linear model for each sample, where the observed molecular readouts 
@@ -97,7 +96,7 @@ class MLMModel(AdataModel):
         description="Key under which the results will be stored in adata.obsm."
     )
 
-class PathwayActivityModel(AdataModel):
+class PathwayActivityModel(BaseModel):
     """Input schema for decoupler's Multivariate Linear Model (MLM) method.
     
     MLM fits a multivariate linear model for each sample, where the observed molecular readouts 
@@ -143,7 +142,7 @@ class PathwayActivityModel(AdataModel):
         description="Number of genes per pathway to return. By default all of them."
     )
 
-class TFActivityModel(AdataModel):
+class TFActivityModel(BaseModel):
     """Input schema for decoupler's Univariate Linear Model (ULM) method.
     
     ULM fits a linear model for each sample and regulator, where the observed molecular 
