@@ -11,7 +11,7 @@ dependencies = [
     "fastmcp>=2.3.5",
     "decoupler",
     "scanpy",
-    "scmcp-shared>=0.2.1",
+    "scmcp-shared>=0.2.5",
 ]
 
 [dependency-groups]
