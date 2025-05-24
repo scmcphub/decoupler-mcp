@@ -40,13 +40,21 @@ you can test it by running
 decoupler-mcp run
 ```
 
-#### run scnapy-server locally
+
+
+#### run decoupler-mcp locally
 Refer to the following configuration in your MCP client:
+
+check path
+```
+$ which decoupler 
+/home/test/bin/decoupler-mcp
+```
 
 ```
 "mcpServers": {
   "decoupler-mcp": {
-    "command": "decoupler-mcp",
+    "command": "/home/test/bin/decoupler-mcp",
     "args": [
       "run"
     ]
@@ -54,7 +62,7 @@ Refer to the following configuration in your MCP client:
 }
 ```
 
-#### run scnapy-server remotely
+#### run decoupler-server remotely
 Refer to the following configuration in your MCP client:
 
 run it in your server
@@ -62,9 +70,14 @@ run it in your server
 decoupler-mcp run --transport shttp --port 8000
 ```
 
-Then configure your MCP client, like this:
+Then configure your MCP client in local AI client, like this:
 ```
-http://localhost:8000/mcp
+
+"mcpServers": {
+  "decoupler-mcp": {
+    "url": "http://localhost:8000/mcp"
+  }
+}
 ```
 
 ## 🤝 Contributing
