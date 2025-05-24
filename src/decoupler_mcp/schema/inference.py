@@ -15,42 +15,22 @@ class ULMModel(BaseModel):
     Target features with no associated weight are set to zero. The obtained t-value from 
     the fitted model is the activity of a given regulator.
     """
-    
-    source: str = Field(
-        default="source",
-        description="Column name in net with source nodes."
-    )
-    
-    target: str = Field(
-        default="target",
-        description="Column name in net with target nodes."
-    )
-    
-    weight: str = Field(
-        default="weight",
-        description="Column name in net with weights."
-    )
-    
-    batch_size: int = Field(
-        default=10000,
-        description="Size of the samples to use for each batch. Increasing this will consume more memory but it will run faster."
-    )
-    
-    min_n: int = Field(
+    tmin: int = Field(
         default=5,
-        description="Minimum of targets per source. If less, sources are removed."
+        description="Minimum number of targets per source. Sources with fewer targets will be removed."
     )
-    
-    use_raw: bool = Field(
+    empty: bool = Field(
         default=True,
-        description="Use raw attribute of mat if present."
+        description="Whether to remove empty observations (rows) or features (columns)."
     )
-    
-    key_added: Optional[str] = Field(
-        default=None,
-        description="Key under which the results will be stored in adata.obsm."
+    raw : bool = Field(
+        default=True,
+        description="Whether to use the .raw attribute of anndata.AnnData."
     )
-
+    bsize: int = Field(
+        default=250000,
+        description="controls how many observations are processed at once. "
+    )
 
 class MLMModel(BaseModel):
     """Input schema for decoupler's Multivariate Linear Model (MLM) method.
@@ -60,43 +40,25 @@ class MLMModel(BaseModel):
     no associated weight are set to zero. The obtained t-values from the fitted model are the 
     activities of the regulators in the network.
     """
-    
-    source: str = Field(
-        default="source",
-        description="Column name in net with source nodes."
-    )
-    
-    target: str = Field(
-        default="target",
-        description="Column name in net with target nodes."
-    )
-    
-    weight: str = Field(
-        default="weight",
-        description="Column name in net with weights."
-    )
-    
-    batch_size: int = Field(
-        default=10000,
-        description="Size of the samples to use for each batch. Increasing this will consume more memory but it will run faster."
-    )
-    
-    min_n: int = Field(
+    tmin: int = Field(
         default=5,
-        description="Minimum of targets per source. If less, sources are removed."
+        description="Minimum number of targets per source. Sources with fewer targets will be removed."
     )
-    
-    use_raw: bool = Field(
+    empty: bool = Field(
         default=True,
-        description="Use raw attribute of mat if present."
+        description="Whether to remove empty observations (rows) or features (columns)."
     )
-    
-    key_added: Optional[str] = Field(
-        default=None,
-        description="Key under which the results will be stored in adata.obsm."
+    raw : bool = Field(
+        default=True,
+        description="Whether to use the .raw attribute of anndata.AnnData."
+    )
+    bsize: int = Field(
+        default=250000,
+        description="controls how many observations are processed at once. "
     )
 
-class PathwayActivityModel(BaseModel):
+
+class PathwayActivityModel(MLMModel):
     """Input schema for decoupler's Multivariate Linear Model (MLM) method.
     
     MLM fits a multivariate linear model for each sample, where the observed molecular readouts 
@@ -104,45 +66,25 @@ class PathwayActivityModel(BaseModel):
     no associated weight are set to zero. The obtained t-values from the fitted model are the 
     activities of the regulators in the network.
     """
-    source: str = Field(
-        default="source",
-        description="Column name in net with source nodes."
-    )
-    target: str = Field(
-        default="target",
-        description="Column name in net with target nodes."
-    )
-    weight: str = Field(
-        default="weight",
-        description="Column name in net with weights."
-    )
-    batch_size: int = Field(
-        default=10000,
-        description="Size of the samples to use for each batch. Increasing this will consume more memory but it will run faster."
-    )
-    min_n: int = Field(
-        default=5,
-        description="Minimum of targets per source. If less, sources are removed."
-    )
-    use_raw: bool = Field(
-        default=True,
-        description="Use raw attribute of mat if present."
-    )    
-    key_added: Optional[str] = Field(
-        default=None,
-        description="Key under which the results will be stored in adata.obsm."
-    )
     organism: str = Field(
         default="human",
         description="The organism of interest. By default human."
     )
-    
-    top: int = Field(
-        default=None,
+    top: int | float = Field(
+        default=float("inf"),
         description="Number of genes per pathway to return. By default all of them."
     )
+    thr_padj: float = Field(
+        default=0.05,
+        description="Significance threshold to trim interactions."
+    )
+    license: str = Field(
+        default="academic",
+        description="Which license to use, available options are: academic, commercial, or nonprofit."
+    )
 
-class TFActivityModel(BaseModel):
+
+class TFActivityModel(ULMModel):
     """Input schema for decoupler's Univariate Linear Model (ULM) method.
     
     ULM fits a linear model for each sample and regulator, where the observed molecular 
@@ -150,35 +92,16 @@ class TFActivityModel(BaseModel):
     Target features with no associated weight are set to zero. The obtained t-value from 
     the fitted model is the activity of a given regulator.
     """
-    source: str = Field(
-        default="source",
-        description="Column name in net with source nodes."
-    )
-    target: str = Field(
-        default="target",
-        description="Column name in net with target nodes."
-    )
-    weight: str = Field(
-        default="weight",
-        description="Column name in net with weights."
-    )
-    batch_size: int = Field(
-        default=10000,
-        description="Size of the samples to use for each batch. Increasing this will consume more memory but it will run faster."
-    )
-    min_n: int = Field(
-        default=5,
-        description="Minimum of targets per source. If less, sources are removed."
-    )
-    use_raw: bool = Field(
-        default=True,
-        description="Use raw attribute of mat if present."
-    )
-    key_added: Optional[str] = Field(
-        default=None,
-        description="Key under which the results will be stored in adata.obsm."
-    )
+
     organism: str = Field(
         default="human",
         description="The organism of interest. By default human."
+    )
+    remove_complexes: bool = Field(
+        default=False,
+        description="Whether to remove complexes."
+    )
+    license: str = Field(
+        default="academic",
+        description="Which license to use, available options are: academic, commercial, or nonprofit."
     )

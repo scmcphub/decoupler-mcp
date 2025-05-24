@@ -26,21 +26,16 @@ async def pathway_activity(
         ads = get_ads()
         adata = ads.get_adata(adinfo=adinfo)
         kwargs = request.model_dump()
-        progeny = dc.get_progeny(organism=kwargs["organism"], top=kwargs.get("top", None))
-        func_kwargs = filter_args(request, dc.run_mlm)
-        dc.run_mlm(mat=adata, net=progeny, **func_kwargs)
-        adata.obsm['progeny_mlm_estimate'] = adata.obsm['mlm_estimate'].copy()
-        adata.obsm['progeny_mlm_pvals'] = adata.obsm['mlm_pvals'].copy()
-        add_op_log(adata, dc.run_mlm, func_kwargs, adinfo)
-        estimate_adata = obsm2adata(adata, "progeny_mlm_estimate")
-        pvals_adata = obsm2adata(adata, "progeny_mlm_pvals")
+        progeny = dc.op.progeny(organism=kwargs["organism"], top=kwargs.get("top", None))
+        func_kwargs = filter_args(request, dc.mt.mlm)
+        dc.mt.mlm(data=adata, net=progeny, **func_kwargs)
+        score = dc.pp.get_obsm(adata=adata, key='score_mlm')
+        add_op_log(adata, dc.mt.mlm, func_kwargs, adinfo)
         sdtype = "activity"
-        ads.set_adata(pvals_adata, sampleid="progeny_mlm_pvals", sdtype=sdtype)
-        ads.set_adata(estimate_adata, sampleid="progeny_mlm_estimate", sdtype=sdtype)
+        ads.set_adata(score, sampleid="score_mlm", sdtype=sdtype)
         return [
             {"sampleid": adinfo.sampleid or ads.active_id, "adtype": adinfo.adtype, "adata": adata},
-            {"sampleid": "progeny_mlm_pvals", "adtype": sdtype, "adata": pvals_adata},
-            {"sampleid": "progeny_mlm_estimate", "adtype": sdtype, "adata": estimate_adata}
+            {"sampleid": "score_mlm", "adtype": sdtype, "adata": score},
         ]
     except ToolError as e:
         raise ToolError(e)
@@ -64,21 +59,16 @@ async def tf_activity(
         ads = get_ads()
         adata = ads.get_adata(adinfo=adinfo)
         kwargs = request.model_dump()
-        net = dc.get_collectri(organism=kwargs["organism"], split_complexes=False) 
-        func_kwargs = filter_args(request, dc.run_ulm)
-        dc.run_ulm(mat=adata, net=net, **func_kwargs)
-        adata.obsm['collectri_ulm_estimate'] = adata.obsm['ulm_estimate'].copy()
-        adata.obsm['collectri_ulm_pvals'] = adata.obsm['ulm_pvals'].copy()
-        add_op_log(adata, dc.run_ulm, func_kwargs, adinfo)
-        estimate_adata = obsm2adata(adata, "collectri_ulm_estimate")
-        pvals_adata = obsm2adata(adata, "collectri_ulm_pvals")
+        net = dc.op.collectri(organism=kwargs["organism"])
+        func_kwargs = filter_args(request, dc.mt.ulm)
+        dc.mt.ulm(data=adata, net=net, **func_kwargs)
+        score = dc.pp.get_obsm(adata=adata, key='score_ulm')
+        add_op_log(adata, dc.mt.ulm, func_kwargs, adinfo)
         sdtype = "activity"
-        ads.set_adata(pvals_adata, sampleid="collectri_ulm_pvals", sdtype=sdtype)
-        ads.set_adata(estimate_adata, sampleid="collectri_ulm_estimate", sdtype=sdtype)
+        ads.set_adata(score, sampleid="score_ulm", sdtype=sdtype)
         return [    
             {"sampleid": adinfo.sampleid or ads.active_id, "adtype": adinfo.adtype, "adata": adata},
-            {"sampleid": "collectri_ulm_pvals", "adtype": sdtype, "adata": pvals_adata},
-            {"sampleid": "collectri_ulm_estimate", "adtype": sdtype, "adata": estimate_adata}
+            {"sampleid": "score_ulm", "adtype": sdtype, "adata": score}
         ]
     except ToolError as e:
         raise ToolError(e)
@@ -88,3 +78,4 @@ async def tf_activity(
         else:
             raise ToolError(e)
 
+ 

@@ -13,7 +13,7 @@ from .inference import if_mcp
 
 
 
-ads = shs.AdataState(add_adtypes="activity")
+ads = shs.AdataState()
 
 @asynccontextmanager
 async def adata_lifespan(server: FastMCP) -> AsyncIterator[Any]:
@@ -33,7 +33,7 @@ async def setup(modules=None):
         "ul": ul_mcp
         }
     if modules is None or modules == "all":
-        modules = ["io", "if", "pl", "ul"]
+        modules = mcp_dic.keys()
     for module in modules:
         await decoupler_mcp.import_server(module, mcp_dic[module])
  
