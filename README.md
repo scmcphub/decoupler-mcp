@@ -27,6 +27,11 @@ You can use decoupler-mcp in most AI clients, plugins, or agent frameworks that 
 A demo showing scRNA-Seq cell cluster analysis in a AI client Cherry Studio using natural language based on decoupler-mcp
 
 
+## 📚 Documentation
+
+scmcphub's complete documentation is available at https://docs.scmcphub.org
+
+
 ## 🏎️ Quickstart
 
 ### Install
