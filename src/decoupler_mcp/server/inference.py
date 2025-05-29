@@ -14,13 +14,13 @@ logger = setup_logger()
 
 
 @if_mcp.tool()
-async def pathway_activity(
+def pathway_activity(
     request: PathwayActivityModel,
     adinfo: AdataModel = AdataModel()
 ):
     """Pathway activity inference"""
     try:
-        result = await forward_request("if_pathway_activity", request, adinfo)
+        result = forward_request("if_pathway_activity", request, adinfo)
         if result is not None:
             return result
         ads = get_ads()
@@ -47,13 +47,13 @@ async def pathway_activity(
 
 
 @if_mcp.tool()
-async def tf_activity(
+def tf_activity(
     request: TFActivityModel, 
     adinfo: AdataModel = AdataModel()
 ):
     """Transcription factor activity inference"""
     try:
-        result = await forward_request("if_tf_activity", request, adinfo)
+        result = forward_request("if_tf_activity", request, adinfo)
         if result is not None:
             return result
         ads = get_ads()
