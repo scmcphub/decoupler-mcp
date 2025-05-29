@@ -11,6 +11,7 @@ dependencies = [
     "fastmcp>=2.3.5",
     "decoupler>=2.0.1",
     "scanpy",
+    "nest_asyncio",
     "scmcp-shared>=0.3.0",
 ]
 
