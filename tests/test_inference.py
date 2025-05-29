@@ -1,13 +1,12 @@
 import pytest
 from fastmcp import Client
 from pathlib import Path
-from decoupler_mcp.server import  mcp, module_dic
-from scmcp_shared.util import setup_mcp
+import nest_asyncio
 
-mcp = setup_mcp(mcp, module_dic)
+nest_asyncio.apply()
 
 @pytest.mark.asyncio 
-async def test_activity():
+async def test_activity(mcp):
     # Pass the server directly to the Client constructor
     testfile = Path(__file__).parent / "data/pbmc3k_processed.h5ad"
     outfile = Path(__file__).parent / "data/test.h5ad"

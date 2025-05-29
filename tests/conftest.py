@@ -2,12 +2,7 @@
 import pytest
 
 @pytest.fixture
-def mcp_config():
-    return {
-        "mcpServers": {
-            "decoupler-mcp": {
-                "command": "decoupler-mcp",
-                "args": ["run"]
-            }
-        }
-    }
+def mcp():
+    from decoupler_mcp.server import DecouplerMCPManager
+    mcp = DecouplerMCPManager("decoupler-mcp").mcp
+    return mcp
