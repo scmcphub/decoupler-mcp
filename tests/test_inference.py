@@ -1,17 +1,17 @@
 import pytest
 from fastmcp import Client
 from pathlib import Path
-from decoupler_mcp.server import decoupler_mcp,setup
-import asyncio
+from decoupler_mcp.server import  mcp, module_dic
+from scmcp_shared.util import setup_mcp
 
-asyncio.run(setup())
+mcp = setup_mcp(mcp, module_dic)
 
 @pytest.mark.asyncio 
 async def test_activity():
     # Pass the server directly to the Client constructor
     testfile = Path(__file__).parent / "data/pbmc3k_processed.h5ad"
     outfile = Path(__file__).parent / "data/test.h5ad"
-    async with Client(decoupler_mcp) as client:
+    async with Client(mcp) as client:
         result = await client.call_tool("io_read", {"request":{"filename": testfile}, "adinfo":{ "sampleid": "pbmc3k", "adtype": "exp"}})
         assert "AnnData" in result[0].text
 
@@ -26,4 +26,10 @@ async def test_activity():
             {"request":{}, "adinfo":{ "sampleid": "pbmc3k", "adtype": "exp"}}
         )
         assert "score_ulm" in result[0].text
+
+        result = await client.call_tool(
+            "pl_embedding", 
+            {"request": {'basis': 'X_umap', 'color': 'PAX5', 'cmap': 'RdBu_r'}, "adinfo": {'sampleid': 'score_ulm', 'adtype': 'activity'}}
+        )
+        assert "embedding" in result[0].text
 
