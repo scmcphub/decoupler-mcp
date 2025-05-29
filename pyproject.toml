@@ -21,7 +21,7 @@ dev = [
 ]
 
 [project.scripts]
-decoupler-mcp = "decoupler_mcp.cli:app"
+decoupler-mcp = "decoupler_mcp.cli:run_cli"
 
 [build-system]
 requires = ["hatchling"]
