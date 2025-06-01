@@ -12,6 +12,3 @@ cli = MCPCLI(
     help_text="Decoupler MCP Server CLI",
     manager=DecouplerMCPManager
 )
-
-def run_cli():
-    cli.app()
