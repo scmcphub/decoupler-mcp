@@ -36,4 +36,8 @@ path = "src/decoupler_mcp/__init__.py"
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 
+[project.urls]
+Homepage = "http://scmcphub.org/"
+Repository = "https://github.com/scmcphub/decoupler-mcp"
+Documentation = "https://docs.scmcphub.org/"
 
