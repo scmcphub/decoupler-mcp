@@ -6,6 +6,19 @@ readme = "README.md"
 authors = [
     { name = "shuang", email = "hsh-me@outlook.com" }
 ]
+
+keywords = [
+    "mcp",
+    "model context protocol",
+    "llm",
+    "agent",
+    "scRNA-seq",
+    "single cell",
+    "bioinformatics",
+    "AI"
+]
+
+
 requires-python = ">=3.10"
 dependencies = [
     "fastmcp>=2.3.5",
