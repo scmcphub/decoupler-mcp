@@ -27,6 +27,7 @@ dependencies = [
     "scanpy",
     "nest_asyncio",
     "agno",
+    "lancedb",
     "scmcp-shared>=0.5.0",
 ]
 
