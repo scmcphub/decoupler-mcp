@@ -26,6 +26,7 @@ dependencies = [
     "decoupler>=2.0.1",
     "scanpy",
     "nest_asyncio",
+    "agno",
     "scmcp-shared>=0.5.0",
 ]
 
